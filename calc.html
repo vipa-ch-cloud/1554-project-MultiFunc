@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multifunctional - Calc</title>
+
+    <!-- Создаем стиль страницы-->
+        <link rel="stylesheet" href="calc.css">
+    <!--------------------------->
+
+</head>
+
+<body>
+    <!-- добавляем элементы -->
+<div class="xyz">
+    <!-- контейнер калькулятора -->
+    <fieldset id="container">
+      <!-- общая форма -->
+      <form name="calculator">
+
+        <!-- элемент дисплея калькулятора -->
+        <input id="display" type="text" name="display" readonly>
+
+        <!-- кнопки верхнего ряда -->
+        <!-- кнопка с цифрой 7 -->
+        <input class="button digits" type="button" value="7">
+        <!-- кнопка с цифрой 8 -->
+        <input class="button digits" type="button" value="8">
+        <!-- кнопка с цифрой 9 -->
+        <input class="button digits" type="button" value="9">
+        <!-- кнопка сложения -->
+        <input class="button mathButtons" type="button" value="+">
+        <br />
+        <!-- кнопки среднего ряда -->
+        <!-- кнопка с цифрой 4 -->
+        <input class="button digits" type="button" value="4">
+        <!-- кнопка с цифрой 5 -->
+        <input class="button digits" type="button" value="5">
+        <!-- кнопка с цифрой 6 -->
+        <input class="button digits" type="button" value="6">
+        <!-- кнопка вычитания -->
+        <input class="button mathButtons" type="button" value="-">
+        <br />
+        <!-- кнопки нижнего ряда -->
+        <!-- кнопка с цифрой 1 -->
+        <input class="button digits" type="button" value="1">
+        <!-- кнопка с цифрой 2 -->
+        <input class="button digits" type="button" value="2">
+        <!-- кнопка с цифрой 3 -->
+        <input class="button digits" type="button" value="3">
+        <!-- кнопка умножения -->
+        <input class="button mathButtons" type="button" value="x">
+        <br />
+        <!-- кнопки подвала -->
+        <!-- кнопка сброса -->
+        <input id="clearButton" class="button" type="button" value="C">
+        <!-- кнопка с цифрой 0 -->
+        <input class="button digits" type="button" value="0">
+        <!-- кнопка математического оператора «равно» -->
+        <input class="button mathButtons" type="button" value="=">
+        <!-- кнопка деления / -->
+        <input class="button mathButtons" type="button" value="/">
+      </form>
+    </fieldset>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const display = document.getElementById('display');
+        let currentInput = '';
+        let previousInput = '';
+        let operator = '';
+        let shouldResetDisplay = false;
+
+        function updateDisplay(value) {
+            display.value = value;
+        }
+
+        function inputDigit(digit) {
+            if (shouldResetDisplay) {
+                currentInput = '';
+                shouldResetDisplay = false;
+            }
+            
+            if (digit === '0' && currentInput === '0') return;
+            if (digit === '.' && currentInput.includes('.')) return;
+            
+            currentInput += digit;
+            updateDisplay(currentInput);
+        }
+
+        function inputOperator(nextOperator) {
+            if (currentInput === '' && previousInput === '') return;
+            
+            if (previousInput !== '' && currentInput !== '' && operator !== '') {
+                calculate();
+            }
+            
+            operator = nextOperator;
+            previousInput = currentInput || previousInput;
+            currentInput = '';
+            shouldResetDisplay = false;
+        }
+
+        function calculate() {
+            if (previousInput === '' || currentInput === '' || operator === '') return;
+            
+            // Показываем надпись "Вычисляем..." на 1 секунду
+            updateDisplay('Вычисляем...');
+            
+            setTimeout(() => {
+                const prev = parseFloat(previousInput);
+                const current = parseFloat(currentInput);
+                let result = 0;
+                
+                switch (operator) {
+                    case '+':
+                        result = prev + current;
+                        break;
+                    case '-':
+                        result = prev - current;
+                        break;
+                    case 'x':
+                        result = prev * current;
+                        break;
+                    case '/':
+                        if (current === 0) {
+                            alert('Ошибка: Деление на ноль!');
+                            clearCalculator();
+                            return;
+                        }
+                        result = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+
+                // ФОРМАТИРОВАНИЕ РЕЗУЛЬТАТА - убираем лишние знаки
+            result = parseFloat(result.toFixed(3)); // оставляем 10 знаков после запятой
+                
+                currentInput = result.toString();
+                operator = '';
+                previousInput = '';
+                shouldResetDisplay = true;
+                updateDisplay(currentInput);
+            }, 1000); // Задержка 1 секунда
+        }
+
+        function clearCalculator() {
+            currentInput = '';
+            previousInput = '';
+            operator = '';
+            shouldResetDisplay = false;
+            updateDisplay('0');
+        }
+
+        // Обработчики событий
+        document.querySelectorAll('.digits').forEach(button => {
+            button.addEventListener('click', function() {
+                inputDigit(this.value);
+            });
+        });
+
+        document.querySelectorAll('.mathButtons').forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.value === '=') {
+                    calculate();
+                } else {
+                    inputOperator(this.value);
+                }
+            });
+        });
+
+        document.getElementById('clearButton').addEventListener('click', clearCalculator);
+
+        updateDisplay('0');
+    });
+</script>
+</body>
+</html>
