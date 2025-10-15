@@ -1,95 +1,111 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multifunctional - Calc</title>
-
-    <!-- Создаем стиль страницы-->
-        <link rel="stylesheet" href="calc.css">
-    <!--------------------------->
-
+    <!-- Подключаем стили -->
+    <link rel="stylesheet" href="calc.css">
 </head>
-
 <body>
-    <!-- добавляем элементы -->
-<div class="xyz">
-    <!-- контейнер калькулятора -->
-    <fieldset id="container">
-      <!-- общая форма -->
-      <form name="calculator">
+    <!-- Основной контейнер -->
+    <div class="xyz">
+        <!-- Контейнер калькулятора -->
+        <fieldset id="container">
+            <!-- Форма калькулятора -->
+            <form name="calculator">
+                <!-- Дисплей калькулятора -->
+                <input id="display" type="text" name="display" readonly>
 
-        <!-- элемент дисплея калькулятора -->
-        <input id="display" type="text" name="display" readonly>
+                <!-- Первый ряд: цифры 7,8,9 и сложение -->
+                <input class="button digits" type="button" value="7">
+                <input class="button digits" type="button" value="8">
+                <input class="button digits" type="button" value="9">
+                <input class="button mathButtons" type="button" value="+">
+                <br />
+                
+                <!-- Второй ряд: цифры 4,5,6 и вычитание -->
+                <input class="button digits" type="button" value="4">
+                <input class="button digits" type="button" value="5">
+                <input class="button digits" type="button" value="6">
+                <input class="button mathButtons" type="button" value="-">
+                <br />
+                
+                <!-- Третий ряд: цифры 1,2,3 и умножение -->
+                <input class="button digits" type="button" value="1">
+                <input class="button digits" type="button" value="2">
+                <input class="button digits" type="button" value="3">
+                <input class="button mathButtons" type="button" value="x">
+                <br />
+                
+                <!-- Четвертый ряд: сброс, ноль, десятичная точка и обыкновенная дробь -->
+                <input id="clearButton" class="button" type="button" value="C">
+                <input class="button digits" type="button" value="0">
+                <input class="button mathButtons" type="button" value=".">
+                <input class="button mathButtons" type="button" value="a/b">
+                <br />
+                
+                <!-- Пятый ряд: равно и деление -->
+                <input class="button mathButtons" type="button" value="=">
+                <input class="button mathButtons" type="button" value="/">
+            </form>
+        </fieldset>
+    </div>
 
-        <!-- кнопки верхнего ряда -->
-        <!-- кнопка с цифрой 7 -->
-        <input class="button digits" type="button" value="7">
-        <!-- кнопка с цифрой 8 -->
-        <input class="button digits" type="button" value="8">
-        <!-- кнопка с цифрой 9 -->
-        <input class="button digits" type="button" value="9">
-        <!-- кнопка сложения -->
-        <input class="button mathButtons" type="button" value="+">
-        <br />
-        <!-- кнопки среднего ряда -->
-        <!-- кнопка с цифрой 4 -->
-        <input class="button digits" type="button" value="4">
-        <!-- кнопка с цифрой 5 -->
-        <input class="button digits" type="button" value="5">
-        <!-- кнопка с цифрой 6 -->
-        <input class="button digits" type="button" value="6">
-        <!-- кнопка вычитания -->
-        <input class="button mathButtons" type="button" value="-">
-        <br />
-        <!-- кнопки нижнего ряда -->
-        <!-- кнопка с цифрой 1 -->
-        <input class="button digits" type="button" value="1">
-        <!-- кнопка с цифрой 2 -->
-        <input class="button digits" type="button" value="2">
-        <!-- кнопка с цифрой 3 -->
-        <input class="button digits" type="button" value="3">
-        <!-- кнопка умножения -->
-        <input class="button mathButtons" type="button" value="x">
-        <br />
-        <!-- кнопки подвала -->
-        <!-- кнопка сброса -->
-        <input id="clearButton" class="button" type="button" value="C">
-        <!-- кнопка с цифрой 0 -->
-        <input class="button digits" type="button" value="0">
-        <!-- кнопка математического оператора «равно» -->
-        <input class="button mathButtons" type="button" value="=">
-        <!-- кнопка деления / -->
-        <input class="button mathButtons" type="button" value="/">
-      </form>
-    </fieldset>
-</div>
 <script>
+    // Ждем полной загрузки DOM
     document.addEventListener('DOMContentLoaded', function() {
+        // Получаем элементы управления
         const display = document.getElementById('display');
-        let currentInput = '';
-        let previousInput = '';
-        let operator = '';
-        let shouldResetDisplay = false;
+        
+        // Переменные для хранения состояния калькулятора
+        let currentInput = '';      // Текущий ввод
+        let previousInput = '';     // Предыдущий ввод
+        let operator = '';          // Текущий оператор (+, -, x, /)
+        let shouldResetDisplay = false; // Флаг сброса дисплея
+        let fractionMode = false;   // Режим ввода дроби (для a/b)
+        let numerator = '';         // Числитель дроби
+        let denominator = '';       // Знаменатель дроби
 
+        // Функция обновления дисплея
         function updateDisplay(value) {
             display.value = value;
         }
 
+        // Функция ввода цифр и точек
         function inputDigit(digit) {
             if (shouldResetDisplay) {
                 currentInput = '';
                 shouldResetDisplay = false;
+                fractionMode = false;
             }
             
-            if (digit === '0' && currentInput === '0') return;
-            if (digit === '.' && currentInput.includes('.')) return;
-            
-            currentInput += digit;
+            if (fractionMode) {
+                // Режим ввода дроби - добавляем к знаменателю
+                denominator += digit;
+                currentInput = numerator + '/' + denominator;
+            } else {
+                // Обычный режим ввода
+                if (digit === '0' && currentInput === '0') return;
+                if (digit === '.' && currentInput.includes('.')) return;
+                
+                currentInput += digit;
+            }
             updateDisplay(currentInput);
         }
 
+        // Функция для ввода обыкновенной дроби
+        function inputFraction() {
+            if (currentInput === '' || fractionMode) return;
+            
+            fractionMode = true;
+            numerator = currentInput;
+            denominator = '';
+            currentInput += '/';
+            updateDisplay(currentInput);
+        }
+
+        // Функция ввода математических операторов
         function inputOperator(nextOperator) {
             if (currentInput === '' && previousInput === '') return;
             
@@ -101,17 +117,69 @@
             previousInput = currentInput || previousInput;
             currentInput = '';
             shouldResetDisplay = false;
+            fractionMode = false;
         }
 
+        // Функция преобразования дроби в число
+        function parseFraction(input) {
+            if (input.includes('/')) {
+                const parts = input.split('/');
+                if (parts.length === 2) {
+                    const num = parseFloat(parts[0]);
+                    const den = parseFloat(parts[1]);
+                    if (den !== 0) {
+                        return num / den;
+                    }
+                }
+            }
+            return parseFloat(input);
+        }
+
+        // Функция проверки является ли дробь периодической
+        function isRepeatingDecimal(number) {
+            // Преобразуем число в строку для анализа
+            const numStr = number.toString();
+            
+            // Если число целое - не периодическое
+            if (!numStr.includes('.')) return false;
+            
+            // Разделяем целую и дробную части
+            const parts = numStr.split('.');
+            const decimalPart = parts[1];
+            
+            // Если дробная часть короткая (меньше 4 знаков) - не считаем периодическим
+            if (decimalPart.length < 4) return false;
+            
+            // Проверяем есть ли повторяющиеся последовательности
+            // Простая проверка - если после 4 знака идут повторения
+            for (let i = 0; i < decimalPart.length - 3; i++) {
+                const sequence = decimalPart.substring(i, i + 2);
+                // Если последовательность из 2 цифр повторяется несколько раз
+                let count = 0;
+                for (let j = i; j < decimalPart.length - 1; j += 2) {
+                    if (decimalPart.substring(j, j + 2) === sequence) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                if (count >= 2) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // Основная функция вычисления
         function calculate() {
             if (previousInput === '' || currentInput === '' || operator === '') return;
             
-            // Показываем надпись "Вычисляем..." на 1 секунду
             updateDisplay('Вычисляем...');
             
             setTimeout(() => {
-                const prev = parseFloat(previousInput);
-                const current = parseFloat(currentInput);
+                const prev = parseFraction(previousInput);
+                const current = parseFraction(currentInput);
                 let result = 0;
                 
                 switch (operator) {
@@ -136,44 +204,60 @@
                         return;
                 }
 
-                // ФОРМАТИРОВАНИЕ РЕЗУЛЬТАТА - убираем лишние знаки
-            result = parseFloat(result.toFixed(3)); // оставляем 10 знаков после запятой
+                // ФОРМАТИРОВАНИЕ ТОЛЬКО ДЛЯ ПЕРИОДИЧЕСКИХ ДРОБЕЙ
+                if (isRepeatingDecimal(result)) {
+                    // Если дробь периодическая - округляем до 3 знаков
+                    result = parseFloat(result.toFixed(3));
+                }
+                // Для обычных чисел оставляем как есть
                 
                 currentInput = result.toString();
                 operator = '';
                 previousInput = '';
                 shouldResetDisplay = true;
+                fractionMode = false;
                 updateDisplay(currentInput);
-            }, 1000); // Задержка 1 секунда
+            }, 1000);
         }
 
+        // Функция полного сброса калькулятора
         function clearCalculator() {
             currentInput = '';
             previousInput = '';
             operator = '';
             shouldResetDisplay = false;
+            fractionMode = false;
+            numerator = '';
+            denominator = '';
             updateDisplay('0');
         }
 
-        // Обработчики событий
+        // Обработчики событий для цифровых кнопок
         document.querySelectorAll('.digits').forEach(button => {
             button.addEventListener('click', function() {
                 inputDigit(this.value);
             });
         });
 
+        // Обработчики событий для математических кнопок
         document.querySelectorAll('.mathButtons').forEach(button => {
             button.addEventListener('click', function() {
                 if (this.value === '=') {
                     calculate();
+                } else if (this.value === '.') {
+                    inputDigit('.');
+                } else if (this.value === 'a/b') {
+                    inputFraction();
                 } else {
                     inputOperator(this.value);
                 }
             });
         });
 
+        // Обработчик для кнопки сброса
         document.getElementById('clearButton').addEventListener('click', clearCalculator);
 
+        // Инициализация дисплея
         updateDisplay('0');
     });
 </script>
